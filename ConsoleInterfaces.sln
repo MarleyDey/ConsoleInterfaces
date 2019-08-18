@@ -5,9 +5,14 @@ VisualStudioVersion = 16.0.28922.388
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleInterfaces", "ConsoleInterfaces\ConsoleInterfaces.csproj", "{6B4DDE34-F9BE-473C-8A91-594480FAB1EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleMenuTestUit", "ConsoleMenuTestUit\ConsoleMenuTestUit.csproj", "{2876368A-1821-4F4D-B3A9-CD13FEF27899}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleMenuTestUit", "ConsoleMenuTestUit\ConsoleMenuTestUit.csproj", "{2876368A-1821-4F4D-B3A9-CD13FEF27899}"
 	ProjectSection(ProjectDependencies) = postProject
 		{6B4DDE34-F9BE-473C-8A91-594480FAB1EE} = {6B4DDE34-F9BE-473C-8A91-594480FAB1EE}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "builds", "builds", "{4C1DEC26-FDC1-4A0D-B992-F69B59AEF033}"
+	ProjectSection(SolutionItems) = preProject
+		ConsoleInterfaces\bin\Debug\ConsoleInterfaces.dll = ConsoleInterfaces\bin\Debug\ConsoleInterfaces.dll
 	EndProjectSection
 EndProject
 Global
