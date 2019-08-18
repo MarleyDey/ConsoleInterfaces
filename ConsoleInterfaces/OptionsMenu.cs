@@ -9,7 +9,8 @@ namespace ConsoleInterfaces
     public class OptionsMenu
     {
 
-        private string[] options;
+        private OptionsMenu parentMenu;
+        private List<Option> options;
         public event EventHandler<OptionSelectedEventArgs> OptionSelect;
 
         /** 
@@ -34,6 +35,11 @@ namespace ConsoleInterfaces
             public int option { get; set; }
         }
 
+        public void SetParentMenu(OptionsMenu optionsMenu)
+        {
+            this.parentMenu = optionsMenu;
+        }
+
         /**
          * This allows you to set the options of the option
          * menu with multiple string parameters
@@ -46,7 +52,26 @@ namespace ConsoleInterfaces
         {
             if (this.options != null) throw new Exception("Options have already been defined.");
 
-            this.options = options;
+            var index = 0;
+            this.options = new List<Option>();
+
+            foreach (var optionName in options)
+            {
+                var op = new Option();
+                op.SetIndex(index);
+                op.SetName(optionName);
+
+                this.options.Add(op);
+                index++;
+                    
+            }
+        }
+
+        public void SetOptionLinkMenu(int optionNum, OptionsMenu optionsMenu)
+        {
+            var option = GetOptionFromIndex(optionNum - 1);
+            option.SetLinkedOptionMenu(optionsMenu);
+            optionsMenu.SetParentMenu(this);
         }
 
         /**
@@ -61,8 +86,8 @@ namespace ConsoleInterfaces
         {
             if (this.options == null) throw new Exception("Options cannot be null.");
 
-            bool active = true;
-            int selectedIndex = 0;
+            var active = true;
+            var selectedIndex = 0;
 
             //Loop display the option menu*
             while (active)
@@ -73,17 +98,15 @@ namespace ConsoleInterfaces
                     Console.WriteLine(title);
                 }
                
-                int optionIndex = 0;
-                foreach (string option in options)
+               
+                foreach (var option in options)
                 {
                     Console.BackgroundColor = ConsoleColor.Black;
 
-                    if (selectedIndex == optionIndex) Console.BackgroundColor = ConsoleColor.DarkBlue;
-                    Console.WriteLine($"[{optionIndex + 1}] " + option);
+                    if (selectedIndex == option.GetIndex()) Console.BackgroundColor = ConsoleColor.DarkBlue;
+                    Console.WriteLine($"[{option.GetIndex() + 1}] " + option.GetName() + (option.GetLinkedOptionMenu() != null ? " >" : ""));
 
                     Console.BackgroundColor = ConsoleColor.Black;
-
-                    optionIndex++;
                 }
 
                 Console.WriteLine(" ");
@@ -107,8 +130,8 @@ namespace ConsoleInterfaces
         private SelectionInfo GetNextSelectionInfo(int currentIndex, int optionSize)
         {
 
-            SelectionInfo selectionInfo = new SelectionInfo();
-            ConsoleKeyInfo keyInfo = Console.ReadKey();
+            var selectionInfo = new SelectionInfo();
+            var keyInfo = Console.ReadKey();
 
             switch (keyInfo.Key)
             {
@@ -119,6 +142,23 @@ namespace ConsoleInterfaces
                 case (ConsoleKey.DownArrow):
                     currentIndex++;
                     if (currentIndex > (optionSize - 1)) currentIndex = 0;
+                    break;
+                case (ConsoleKey.RightArrow):
+                    if (GetOptionFromIndex(currentIndex).GetLinkedOptionMenu() != null)
+                    {
+                        selectionInfo.stopMenu = true;
+                        GetOptionFromIndex(currentIndex).GetLinkedOptionMenu().DisplayMenu("");
+                      
+                        //TODO Go to linked menu
+                    }
+                    break;
+                case (ConsoleKey.Escape):
+                case (ConsoleKey.LeftArrow):
+                    if (parentMenu != null)
+                    {
+                        selectionInfo.stopMenu = true;
+                        parentMenu.DisplayMenu("");
+                    }
                     break;
                 case (ConsoleKey.D1):
                     if (1 > optionSize) break;
@@ -170,10 +210,59 @@ namespace ConsoleInterfaces
             return selectionInfo;
         }
 
+        private Option GetOptionFromIndex(int index)
+        {
+            foreach (var option in options)
+            {
+                if (option.GetIndex() == index) return option;
+            }
+            return null;
+        }
+
+
+
         private class SelectionInfo
         {
             public int currentIndex;
             public bool stopMenu = false;
+        }
+
+        private class Option
+        {
+            private string name;
+            private int index;
+            private OptionsMenu linkedOptionMenu;
+
+            public void SetName(string name)
+            {
+                this.name = name;
+            }
+
+            public void SetIndex(int index)
+            {
+                this.index = index;
+            }
+
+            public void SetLinkedOptionMenu(OptionsMenu optionsMenu)
+            {
+                this.linkedOptionMenu = optionsMenu;
+            }
+
+            public string GetName()
+            {
+                return name;
+            }
+
+            public int GetIndex()
+            {
+                return index;
+            }
+
+            public OptionsMenu GetLinkedOptionMenu()
+            {
+                return linkedOptionMenu;
+            }
+
         }
 
     }

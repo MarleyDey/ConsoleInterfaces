@@ -170,6 +170,7 @@ namespace ConsoleInterfaces
                     break;
                 case (ConsoleKey.Spacebar):
                     if (boxTicked[currentIndex] ? boxTicked[currentIndex] = false : boxTicked[currentIndex] = true) ;
+
                     break;
                 case (ConsoleKey.Enter):
 
