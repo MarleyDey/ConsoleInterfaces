@@ -8,20 +8,23 @@ namespace ConsoleMenuTestUit
         static void Main(string[] args)
         {
 
-            OptionsMenu optionsMenu = new OptionsMenu();
+            TickBoxMenu tickBoxMenu = new TickBoxMenu();
 
-            optionsMenu.OptionSelect += OnOptionSelected;
-       
+            tickBoxMenu.BoxOptionSelect += OnBoxOptionSelect;
 
-            optionsMenu.SetOptions("Option 1", "Option 22", "Or my fav option 3");
+            tickBoxMenu.SetBoxOptions("Bob", "Tony", "Marley");
 
-            optionsMenu.DisplayMenu();
+            tickBoxMenu.DisplayMenu("Select A big boi:");
 
         }
 
-        static void OnOptionSelected(object sender, OptionsMenu.OptionSelectedEventArgs e)
+        static void OnBoxOptionSelect(object sender, TickBoxMenu.BoxOptionSelectedEventArgs e)
         {
-            Console.WriteLine("The option selected was in fact: " + e.option);
+            Console.WriteLine("Options selected:");
+            foreach (int option in e.options)
+            {
+                Console.WriteLine("- " + option);
+            }
         }
     }
 }
