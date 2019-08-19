@@ -85,7 +85,7 @@ static void Main(string[] args)
    }
 
 static void OnBoxsSelectEvent(object sender, OptionsMenu.BoxOptionSelectedEventArgs e)
-   {
-       Console.WriteLine($"Options selected: {e.options.Count}");
-   }
+  {
+      //Event code here
+  }
 ```
