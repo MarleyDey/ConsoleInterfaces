@@ -7,17 +7,17 @@ namespace testUnit
     {
         static void Main(string[] args)
         {
-            OptionsMenu options = new OptionsMenu();
+            var optionMenu = new OptionsMenu("This is a menu title:", OptionsMenu.MenuType.TICKBOX);
+            optionMenu.SetOptions("First Option", "Second Option", "Third Option");
 
-            options.SetOptions("Test", "Another test", "boi" );
+            optionMenu.DisplayMenu();
 
-            var anotherOption = new OptionsMenu();
-
-            anotherOption.SetOptions("Ya", "boi");
-
-            options.SetOptionLinkMenu(2, anotherOption);
-
-            options.DisplayMenu("Try boi:");
         }
+
+        static void OnBoxsSelectEvent(object sender, OptionsMenu.BoxOptionSelectedEventArgs e)
+        {
+           //Event code here
+        }
+
     }
 }

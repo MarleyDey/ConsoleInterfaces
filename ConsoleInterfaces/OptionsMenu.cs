@@ -1,17 +1,42 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ConsoleInterfaces
 {
     public class OptionsMenu
     {
-
+        private int selectedIndex;
+        private string title;
         private OptionsMenu parentMenu;
-        private List<Option> options;
+        private Dictionary<Option, bool> options;
+        private MenuType menuType;
+
         public event EventHandler<OptionSelectedEventArgs> OptionSelect;
+        public event EventHandler<BoxOptionSelectedEventArgs> BoxOptionSelect;
+
+
+        public enum MenuType
+        {
+            OPTIONS,
+            TICKBOX
+        }
+
+        public OptionsMenu(string title, MenuType menuType)
+        {
+            this.title = title;
+            this.menuType = menuType;
+        }
+
+        /** 
+         * Event method called when the box selection option 
+         * is called
+         * */
+        protected virtual void OnBoxOptionSelect(BoxOptionSelectedEventArgs e)
+        {
+
+            BoxOptionSelect?.Invoke(this, e);
+        }
 
         /** 
          * Event method called when the selection option 
@@ -35,10 +60,22 @@ namespace ConsoleInterfaces
             public int option { get; set; }
         }
 
-        public void SetParentMenu(OptionsMenu optionsMenu)
+        /**
+         * This is the custom Event args that the EventHandler will
+         * use to parse information for the options
+         * 
+         * */
+        public class BoxOptionSelectedEventArgs : EventArgs
         {
-            this.parentMenu = optionsMenu;
+            public List<int> options { get; set; }
         }
+
+        public void SetParentMenu(OptionsMenu parentMenu)
+        {
+            this.parentMenu = parentMenu;
+        }
+
+     
 
         /**
          * This allows you to set the options of the option
@@ -53,24 +90,33 @@ namespace ConsoleInterfaces
             if (this.options != null) throw new Exception("Options have already been defined.");
 
             var index = 0;
-            this.options = new List<Option>();
+            this.options = new Dictionary<Option, bool>();
 
             foreach (var optionName in options)
             {
-                var op = new Option();
-                op.SetIndex(index);
-                op.SetName(optionName);
+                var op = new Option
+                {
+                    index = index,
+                    name = optionName
+                };
 
-                this.options.Add(op);
+                this.options.Add(op, false);
                 index++;
                     
             }
         }
 
-        public void SetOptionLinkMenu(int optionNum, OptionsMenu optionsMenu)
+        /**
+         * Set a linked menu to an option from its ID
+         * 
+         * int optionNum The options ID
+         * OptionMenu The optionMenu to be linked
+         * */
+        public void SetOptionLink(int optionNum, OptionsMenu optionsMenu)
         {
+            if (menuType == MenuType.TICKBOX) throw new Exception("You cannot link a menu to a check box option.");
             var option = GetOptionFromIndex(optionNum - 1);
-            option.SetLinkedOptionMenu(optionsMenu);
+            option.linkedOptionMenu = optionsMenu;
             optionsMenu.SetParentMenu(this);
         }
 
@@ -82,12 +128,12 @@ namespace ConsoleInterfaces
          * 
          * @return null
          * */
-        public void DisplayMenu(string title)
+        public void DisplayMenu()
         {
             if (this.options == null) throw new Exception("Options cannot be null.");
 
             var active = true;
-            var selectedIndex = 0;
+          
 
             //Loop display the option menu*
             while (active)
@@ -95,21 +141,59 @@ namespace ConsoleInterfaces
 
                 Console.Clear();
                 if (!(title == null || title.Equals(""))) {
-                    Console.WriteLine(title);
+                    Console.Write(title);
+
+                    if (parentMenu != null)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write($" << Return\n");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    else
+                    {
+                        Console.Write("\n");
+                    }
                 }
+               
                
                
                 foreach (var option in options)
                 {
                     Console.BackgroundColor = ConsoleColor.Black;
 
-                    if (selectedIndex == option.GetIndex()) Console.BackgroundColor = ConsoleColor.DarkBlue;
-                    Console.WriteLine($"[{option.GetIndex() + 1}] " + option.GetName() + (option.GetLinkedOptionMenu() != null ? " >" : ""));
+                    if (menuType == MenuType.OPTIONS)
+                    {
 
+                        if (selectedIndex == option.Key.index) Console.BackgroundColor = ConsoleColor.DarkBlue;
+
+                        Console.Write($"[{option.Key.index + 1}] " + option.Key.name);
+
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write((option.Key.linkedOptionMenu != null ? " >>" : "") + "\n");
+                        Console.ForegroundColor = ConsoleColor.White;
+                    }
+                    else
+                    {
+
+                        /*
+                         * This handles the colours of the star tick boxs and
+                         * the selected option
+                         */
+                        Console.BackgroundColor = ConsoleColor.Black;
+                        if (selectedIndex == option.Key.index) Console.BackgroundColor = ConsoleColor.DarkBlue;
+
+                        Console.Write("[");
+                        if (option.Value) Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write((option.Value ? "*" : " "));
+
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write("] " + option.Key.name + "\n");
+                    }
                     Console.BackgroundColor = ConsoleColor.Black;
                 }
 
                 Console.WriteLine(" ");
+                if (menuType == MenuType.TICKBOX) Console.WriteLine("Press [Space] to select.");
                 Console.WriteLine("Press [Enter] to select.");
 
                 SelectionInfo selectionInfo = GetNextSelectionInfo(selectedIndex, options.Count());
@@ -144,12 +228,10 @@ namespace ConsoleInterfaces
                     if (currentIndex > (optionSize - 1)) currentIndex = 0;
                     break;
                 case (ConsoleKey.RightArrow):
-                    if (GetOptionFromIndex(currentIndex).GetLinkedOptionMenu() != null)
+                    if (GetOptionFromIndex(currentIndex).linkedOptionMenu != null)
                     {
-                        selectionInfo.stopMenu = true;
-                        GetOptionFromIndex(currentIndex).GetLinkedOptionMenu().DisplayMenu("");
-                      
-                        //TODO Go to linked menu
+                        selectionInfo.stopMenu = true; //Close current menu
+                        GetOptionFromIndex(currentIndex).linkedOptionMenu.DisplayMenu();
                     }
                     break;
                 case (ConsoleKey.Escape):
@@ -157,7 +239,13 @@ namespace ConsoleInterfaces
                     if (parentMenu != null)
                     {
                         selectionInfo.stopMenu = true;
-                        parentMenu.DisplayMenu("");
+                        parentMenu.DisplayMenu();
+                    }
+                    break;
+                case (ConsoleKey.Spacebar):
+                    if (menuType == MenuType.TICKBOX)
+                    {
+                        options[GetOptionFromIndex(currentIndex)] = (options[GetOptionFromIndex(currentIndex)] ? false : true);
                     }
                     break;
                 case (ConsoleKey.D1):
@@ -197,12 +285,20 @@ namespace ConsoleInterfaces
                     currentIndex = 8;
                     break;
                 case (ConsoleKey.Enter):
-                    OptionSelectedEventArgs eventArgs = new OptionSelectedEventArgs
+                    if (menuType == MenuType.OPTIONS)
                     {
-                        option = currentIndex + 1
-                    };
-                    OnOptionSelect(eventArgs);
-
+                        if (GetOptionFromIndex(currentIndex).linkedOptionMenu != null)
+                        {
+                            selectionInfo.stopMenu = true; //Close current menu
+                            GetOptionFromIndex(currentIndex).linkedOptionMenu.DisplayMenu();
+                            break;
+                        }
+                        
+                        SendSelectionEvent(currentIndex);
+                    } else
+                    {
+                        SendBoxTickSelectionEvent();
+                    }
                     selectionInfo.stopMenu = true;
                     break;
             }
@@ -210,16 +306,64 @@ namespace ConsoleInterfaces
             return selectionInfo;
         }
 
+        /**
+         * Sends the selection event when a user selects an
+         * option from the menu
+         * 
+         * int currentIndex The current index of the option selected
+         * 
+         * @return null
+         * */
+        private void SendSelectionEvent(int currentIndex)
+        {
+            OptionSelectedEventArgs eventArgs = new OptionSelectedEventArgs
+            {
+                option = currentIndex + 1
+            };
+            OnOptionSelect(eventArgs);
+        }
+
+        private void SendBoxTickSelectionEvent()
+        {
+            List<int> tickedOptions = new List<int>();
+
+            int index = 0;
+            foreach (bool ticked in options.Values)
+            {
+                if (ticked)
+                {
+                    tickedOptions.Add(index + 1);
+                }
+                index++;
+            }
+
+            BoxOptionSelectedEventArgs eventArgs = new BoxOptionSelectedEventArgs
+            {
+                options = tickedOptions
+            };
+            OnBoxOptionSelect(eventArgs);
+        }
+
+        /**
+         * Gets the option from the index of the option
+         * that is being searched for
+         * 
+         * int index The index of the option
+         * 
+         * @return The option instance
+         * */
         private Option GetOptionFromIndex(int index)
         {
             foreach (var option in options)
             {
-                if (option.GetIndex() == index) return option;
+                if (option.Key.index == index) return option.Key;
             }
-            return null;
+            return new Option
+            {
+                index = -1, name = "NULL", linkedOptionMenu = null
+               
+            };
         }
-
-
 
         private class SelectionInfo
         {
@@ -227,42 +371,11 @@ namespace ConsoleInterfaces
             public bool stopMenu = false;
         }
 
-        private class Option
+        public class Option
         {
-            private string name;
-            private int index;
-            private OptionsMenu linkedOptionMenu;
-
-            public void SetName(string name)
-            {
-                this.name = name;
-            }
-
-            public void SetIndex(int index)
-            {
-                this.index = index;
-            }
-
-            public void SetLinkedOptionMenu(OptionsMenu optionsMenu)
-            {
-                this.linkedOptionMenu = optionsMenu;
-            }
-
-            public string GetName()
-            {
-                return name;
-            }
-
-            public int GetIndex()
-            {
-                return index;
-            }
-
-            public OptionsMenu GetLinkedOptionMenu()
-            {
-                return linkedOptionMenu;
-            }
-
+            public string name;
+            public int index;
+            public OptionsMenu linkedOptionMenu;
         }
 
     }
