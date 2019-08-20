@@ -57,7 +57,7 @@ namespace ConsoleInterfaces
          * */
         public class OptionSelectedEventArgs : EventArgs
         {
-            public int option { get; set; }
+            public Option option { get; set; }
         }
 
         /**
@@ -67,7 +67,7 @@ namespace ConsoleInterfaces
          * */
         public class BoxOptionSelectedEventArgs : EventArgs
         {
-            public List<int> options { get; set; }
+            public List<Option> options { get; set; }
         }
 
         public void SetParentMenu(OptionsMenu parentMenu)
@@ -318,21 +318,21 @@ namespace ConsoleInterfaces
         {
             OptionSelectedEventArgs eventArgs = new OptionSelectedEventArgs
             {
-                option = currentIndex + 1
-            };
+                option = GetOptionFromIndex(currentIndex)
+        };
             OnOptionSelect(eventArgs);
         }
 
         private void SendBoxTickSelectionEvent()
         {
-            List<int> tickedOptions = new List<int>();
+            var tickedOptions = new List<Option>();
 
             int index = 0;
             foreach (bool ticked in options.Values)
             {
                 if (ticked)
                 {
-                    tickedOptions.Add(index + 1);
+                    tickedOptions.Add(GetOptionFromIndex(index));
                 }
                 index++;
             }
@@ -352,7 +352,7 @@ namespace ConsoleInterfaces
          * 
          * @return The option instance
          * */
-        private Option GetOptionFromIndex(int index)
+        public Option GetOptionFromIndex(int index)
         {
             foreach (var option in options)
             {
