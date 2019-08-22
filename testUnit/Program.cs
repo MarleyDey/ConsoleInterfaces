@@ -1,5 +1,6 @@
 ﻿using System;
 using ConsoleInterfaces;
+using System.Collections.Generic;
 
 namespace testUnit
 {
@@ -7,17 +8,14 @@ namespace testUnit
     {
         static void Main(string[] args)
         {
-            var optionMenu = new OptionsMenu("This is a menu title:", OptionsMenu.MenuType.TICKBOX);
-            optionMenu.SetOptions("First Option", "Second Option", "Third Option");
 
-            optionMenu.DisplayMenu();
+            Console.ForegroundColor = ConsoleColor.White;
+            string test = Log.ReplacePlaceHolders("Test {boi} a test", new Dictionary<string, string>()
+            {
+                { "{boi}", "is" }
+            });
 
+            Log.Info(test);
         }
-
-        static void OnBoxsSelectEvent(object sender, OptionsMenu.BoxOptionSelectedEventArgs e)
-        {
-           //Event code here
-        }
-
     }
 }

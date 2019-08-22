@@ -161,6 +161,7 @@ namespace ConsoleInterfaces
                 {
                     Console.BackgroundColor = ConsoleColor.Black;
 
+                    //Displays option menu
                     if (menuType == MenuType.OPTIONS)
                     {
 
@@ -172,6 +173,8 @@ namespace ConsoleInterfaces
                         Console.Write((option.Key.linkedOptionMenu != null ? " >>" : "") + "\n");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
+
+                    //Displays tick box menu
                     else
                     {
 
