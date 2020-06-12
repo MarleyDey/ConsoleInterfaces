@@ -29,13 +29,17 @@ static void Main(string[] args)
   {
      var optionMenu = new OptionsMenu("This is a menu title:", OptionsMenu.MenuType.OPTIONS);
 
-     optionMenu.OptionSelect += OnOptionSelectEvent;
+     optionMenu.OptionSelect += OnOptionSelectEvent; //Register event before displaying menu
+     optionMenu.DisplayMenu();
 
   }
 
  static void OnOptionSelectEvent(object sender, OptionsMenu.OptionSelectedEventArgs e)
   {
-     //Event code here
+      Console.WriteLine($"You selected {e.Option.Index}");
+      Console.WriteLine($"You selected {e.Option.Name}");
+            
+      //More event code here...
   }
 ```
 
@@ -43,12 +47,14 @@ static void Main(string[] args)
 This allows users to link menus to eachother so options can lead to other menus for
 easy menu linking
 ```csharp
-var optionMenu = new OptionsMenu("This is a menu title:", OptionsMenu.MenuType.OPTIONS);
-optionMenu.SetOptions("An example option");
+var optionMenu = new OptionsMenu("Menu 1:", OptionsMenu.MenuType.OPTIONS);
+optionMenu.SetOptions("Option 1", "Option 2", "option 3");
 
-var secondOptionMenu = new OptionsMenu("This is a menu title", OptionsMenu.MenuType.OPTIONS);
+var secondOptionMenu = new OptionsMenu("Menu 2", OptionsMenu.MenuType.OPTIONS);
+secondOptionMenu.SetOptions("Option 1", "Option 2", "Option 3");
 
-optionMenu.SetOptionLink(1, secondOptionMenu); //This will open the second menu when the first option is selected
+optionMenu.SetOptionLink(0, secondOptionMenu); //This links the first option to the second menu
+optionMenu.DisplayMenu();
 ```
 
 ## Tick Box Menu
@@ -57,9 +63,10 @@ optionMenu.SetOptionLink(1, secondOptionMenu); //This will open the second menu 
 This will allow you to add the box options dynamically to the box option menu, it
 wiull then be displayed with empty tick boxs and allow the user to tick each.
 ```csharp
-var optionMenu = new OptionsMenu("This is a menu title:", OptionsMenu.MenuType.TICKBOX);
-optionMenu.SetOptions("First Option", "Second Option", "Third Option");
+var optionMenu = new OptionsMenu("Menu", OptionsMenu.MenuType.TICKBOX);
+secondOptionMenu.SetOptions("Option 1", "Option 2", "Option 3");
 
+optionMenu.BoxOptionSelect += OnBoxsSelectEvent;
 optionMenu.DisplayMenu();
 ```
 Output: Option 1 and 3 has been selected in this example
@@ -69,8 +76,8 @@ This is a menu title:
 [ ] Second Option
 [*] Third Option
 
-Press [Space] to select.
-Press [Enter] to select.
+Press [Space] to select option.
+Press [Enter] to continue.
 ```
 
 ### Registering tick select event:
@@ -79,13 +86,16 @@ the user to access the options that were selected.
 ```csharp
 static void Main(string[] args)
    {
-       var optionMenu = new OptionsMenu("This is a menu title:", OptionsMenu.MenuType.TICKBOX);
+       var optionMenu = new OptionsMenu("Menu", OptionsMenu.MenuType.TICKBOX);
+       optionMenu.SetOptions("Option 1", "Option 2", "Option 3");
 
-       optionMenu.BoxOptionSelect += OnBoxsSelectEvent;
+       optionMenu.BoxOptionSelect += OnBoxsSelectEvent; //Register event before displaying menu
+       optionMenu.DisplayMenu();
    }
 
 static void OnBoxsSelectEvent(object sender, OptionsMenu.BoxOptionSelectedEventArgs e)
   {
-      //Event code here
+      Console.WriteLine($"Boxes selected: {e.Options.Count}");
+      //Event code here...
   }
 ```
